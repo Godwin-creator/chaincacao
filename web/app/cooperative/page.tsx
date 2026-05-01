@@ -1,0 +1,248 @@
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import { getLots, transferLot, shortAddr, type Lot } from '@/app/lib/api';
+
+type Status = 'idle' | 'loading' | 'pending' | 'success' | 'error';
+
+const KNOWN_ACTORS = [
+  { label: 'Coopérative Amanlé',    address: '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC' },
+  { label: 'Usine Abidjan Sud',     address: '0x90F79bf6EB2c4f870365E785982E1f101E93b906' },
+  { label: 'Export Côte d\'Ivoire', address: '0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65' },
+  { label: 'Kouamé Yao (fermier)',  address: '0x70997970C51812dc3A010C7d01b50e0d17dc79C8' },
+];
+
+export default function CooperativePage() {
+  const [lots, setLots]             = useState<Lot[]>([]);
+  const [lotsLoaded, setLotsLoaded] = useState(false);
+
+  const [lotId, setLotId]     = useState('');
+  const [toActor, setToActor] = useState('');
+  const [notes, setNotes]     = useState('');
+
+  const [status, setStatus] = useState<Status>('idle');
+  const [error, setError]   = useState('');
+  const [txHash, setTxHash] = useState('');
+
+  async function loadLots() {
+    setStatus('loading');
+    try {
+      const { lots: data } = await getLots();
+      setLots(data);
+      setLotsLoaded(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur lors du chargement');
+    } finally {
+      if (status === 'loading') setStatus('idle');
+    }
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError('');
+    if (!lotId || !toActor) { setError('L\'ID du lot et le destinataire sont requis.'); return; }
+    setStatus('pending');
+    try {
+      const res = await transferLot({ lotId: Number(lotId), toActor, notes });
+      setTxHash(res.txHash);
+      setStatus('success');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur inconnue');
+      setStatus('error');
+    }
+  }
+
+  function reset() {
+    setStatus('idle');
+    setError('');
+    setTxHash('');
+    setLotId('');
+    setToActor('');
+    setNotes('');
+  }
+
+  return (
+    <div className="flex flex-1 flex-col">
+      <Header />
+
+      <main className="flex-1 px-4 py-8">
+        <div className="mx-auto max-w-lg space-y-6">
+
+          {/* Success */}
+          {status === 'success' && (
+            <div className="bg-white rounded-2xl shadow-sm border border-blue-200 overflow-hidden">
+              <div className="bg-blue-600 text-white px-6 py-4">
+                <p className="font-semibold text-lg">✅ Transfert enregistré !</p>
+              </div>
+              <div className="px-6 py-5 space-y-3">
+                <div>
+                  <p className="text-xs text-stone-400 mb-0.5">Lot transféré</p>
+                  <p className="font-mono font-medium text-stone-800">#{lotId}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-stone-400 mb-0.5">Nouveau propriétaire</p>
+                  <p className="font-mono text-sm text-stone-800 break-all">{toActor}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-stone-400 mb-0.5">Hash de transaction</p>
+                  <p className="font-mono text-xs text-stone-600 break-all">{txHash}</p>
+                </div>
+              </div>
+              <div className="px-6 pb-5">
+                <button onClick={reset}
+                  className="w-full rounded-lg border border-stone-300 py-2 text-sm text-stone-600 hover:bg-stone-50 transition-colors">
+                  Nouveau transfert
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Lots disponibles */}
+          {status !== 'success' && (
+            <>
+              <div className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+                <div className="px-6 py-4 border-b border-stone-100 flex items-center justify-between">
+                  <div>
+                    <h2 className="font-semibold text-stone-800">Lots disponibles</h2>
+                    <p className="text-stone-400 text-xs mt-0.5">Créés via l'API locale</p>
+                  </div>
+                  <button onClick={loadLots} disabled={status === 'loading'}
+                    className="text-xs bg-blue-50 text-blue-700 border border-blue-200 rounded-lg px-3 py-1.5
+                               hover:bg-blue-100 transition-colors disabled:opacity-50 flex items-center gap-1.5">
+                    {status === 'loading' ? <><Spinner className="text-blue-600" /> Chargement…</> : '↻ Charger'}
+                  </button>
+                </div>
+
+                {lotsLoaded && (
+                  <div className="divide-y divide-stone-100">
+                    {lots.length === 0 ? (
+                      <p className="px-6 py-4 text-sm text-stone-400 italic">
+                        Aucun lot trouvé. Créez-en un depuis le dashboard Agriculteur.
+                      </p>
+                    ) : lots.map((lot) => (
+                      <button key={lot.id} type="button"
+                        onClick={() => setLotId(lot.id)}
+                        className={`w-full text-left px-6 py-3 hover:bg-blue-50 transition-colors
+                                    ${lotId === lot.id ? 'bg-blue-50 border-l-4 border-blue-500' : ''}`}>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <span className="font-mono font-medium text-stone-800 text-sm">Lot #{lot.id}</span>
+                            <span className="ml-2 text-xs bg-amber-100 text-amber-700 rounded px-1.5 py-0.5">
+                              {lot.species}
+                            </span>
+                          </div>
+                          <span className="text-xs text-stone-400">{lot.weightKg} kg</span>
+                        </div>
+                        <p className="text-xs text-stone-400 mt-0.5">
+                          Propriétaire : {shortAddr(lot.currentOwner)}
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Transfer form */}
+              <form onSubmit={handleSubmit}
+                className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+                <div className="px-6 py-5 border-b border-stone-100">
+                  <h2 className="font-semibold text-stone-800">Transférer un lot</h2>
+                </div>
+
+                <div className="px-6 py-5 space-y-5">
+                  {/* Lot ID */}
+                  <div>
+                    <label className="label">ID du lot</label>
+                    <input type="number" min="0" required placeholder="ex. 0"
+                      value={lotId} onChange={e => setLotId(e.target.value)}
+                      className="input font-mono" />
+                    {!lotsLoaded && (
+                      <p className="text-xs text-stone-400 mt-1">
+                        Ou chargez la liste ci-dessus pour sélectionner.
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Destinataire */}
+                  <div>
+                    <label className="label">Adresse du destinataire</label>
+                    <select
+                      value={KNOWN_ACTORS.some(a => a.address === toActor) ? toActor : '__custom__'}
+                      onChange={e => {
+                        if (e.target.value !== '__custom__') setToActor(e.target.value);
+                        else setToActor('');
+                      }}
+                      className="input mb-2">
+                      <option value="__custom__">— Saisir manuellement —</option>
+                      {KNOWN_ACTORS.map(a => (
+                        <option key={a.address} value={a.address}>{a.label}</option>
+                      ))}
+                    </select>
+                    <input type="text" placeholder="0x…" required
+                      value={toActor} onChange={e => setToActor(e.target.value)}
+                      className="input font-mono text-sm" />
+                  </div>
+
+                  {/* Notes */}
+                  <div>
+                    <label className="label">Notes <span className="text-stone-400 font-normal">(optionnel)</span></label>
+                    <textarea rows={2} placeholder="ex. Livraison Yamoussoukro — conditionnement terminé"
+                      value={notes} onChange={e => setNotes(e.target.value)}
+                      className="input resize-none" />
+                  </div>
+
+                  {error && <ErrorBox msg={error} />}
+                </div>
+
+                <div className="px-6 pb-6">
+                  <button type="submit" disabled={status === 'pending'}
+                    className="w-full rounded-lg bg-blue-600 py-3 text-white font-medium
+                               hover:bg-blue-700 transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
+                    {status === 'pending'
+                      ? <><Spinner /> Transfert en cours…</>
+                      : '🤝 Enregistrer le transfert'}
+                  </button>
+                </div>
+              </form>
+            </>
+          )}
+        </div>
+      </main>
+    </div>
+  );
+}
+
+function Header() {
+  return (
+    <header className="bg-blue-700 text-white px-6 py-4 shadow-md">
+      <div className="mx-auto max-w-lg flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-2xl">🤝</span>
+          <span className="font-semibold">Dashboard Coopérative</span>
+        </div>
+        <Link href="/" className="text-xs opacity-75 hover:opacity-100 transition-opacity">
+          ← Accueil
+        </Link>
+      </div>
+    </header>
+  );
+}
+
+function ErrorBox({ msg }: { msg: string }) {
+  return (
+    <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-red-700 text-sm">
+      ⚠️ {msg}
+    </div>
+  );
+}
+
+function Spinner({ className = 'text-white' }: { className?: string }) {
+  return (
+    <svg className={`animate-spin h-4 w-4 ${className}`} viewBox="0 0 24 24" fill="none">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path className="opacity-75" fill="currentColor"
+        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+    </svg>
+  );
+}

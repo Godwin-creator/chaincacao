@@ -1,0 +1,22 @@
+{
+  "name": "chaincacao-blockchain",
+  "version": "1.0.0",
+  "description": "ChainCacao smart contracts — Polygon Amoy",
+  "scripts": {
+    "compile":      "hardhat compile",
+    "test":         "hardhat test",
+    "deploy":       "hardhat run scripts/deploy.js --network amoy",
+    "deploy:local": "hardhat run scripts/deploy.js --network localhost",
+    "seed":         "hardhat run scripts/seed.js --network amoy",
+    "seed:local":   "hardhat run scripts/seed.js --network localhost",
+    "node":         "hardhat node",
+    "verify":       "hardhat verify --network amoy"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "hardhat": "^2.22.0"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.0"
+  }
+}

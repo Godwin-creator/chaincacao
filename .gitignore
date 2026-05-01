@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+.next/
+dist/
+artifacts/
+cache/
+typechain-types/
+
+# Env files
+.env
+.env.local
+api/.env
+blockchain/.env
+
+# Deployment artefacts (contain secrets / addresses)
+blockchain/deployment.json
+
+# Misc
+.DS_Store
+*.log
