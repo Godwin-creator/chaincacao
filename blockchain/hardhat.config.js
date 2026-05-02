@@ -18,6 +18,7 @@ module.exports = {
       url:      process.env.AMOY_RPC_URL || "https://rpc-amoy.polygon.technology",
       chainId:  80002,
       accounts: [PRIVATE_KEY],
+      gasPrice: 25_000_000_000, // 25 gwei — réduit le coût de déploiement
     },
   },
 
