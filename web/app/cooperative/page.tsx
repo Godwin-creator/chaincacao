@@ -11,6 +11,7 @@ import {
   faArrowLeft,
   faRotate,
   faSpinner,
+  faChevronRight,
 } from '@fortawesome/free-solid-svg-icons';
 import { getLots, transferLot, shortAddr, type Lot } from '@/app/lib/api';
 
@@ -19,7 +20,7 @@ type Status = 'idle' | 'loading' | 'pending' | 'success' | 'error';
 const KNOWN_ACTORS = [
   { label: 'Coopérative Amanlé',    address: '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC' },
   { label: 'Usine Abidjan Sud',     address: '0x90F79bf6EB2c4f870365E785982E1f101E93b906' },
-  { label: 'Export Côte d\'Ivoire', address: '0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65' },
+  { label: "Export Côte d'Ivoire",  address: '0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65' },
   { label: 'Kouamé Yao (fermier)',  address: '0x70997970C51812dc3A010C7d01b50e0d17dc79C8' },
 ];
 
@@ -44,14 +45,14 @@ export default function CooperativePage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur lors du chargement');
     } finally {
-      if (status === 'loading') setStatus('idle');
+      setStatus('idle');
     }
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
-    if (!lotId || !toActor) { setError('L\'ID du lot et le destinataire sont requis.'); return; }
+    if (!lotId || !toActor) { setError("L'ID du lot et le destinataire sont requis."); return; }
     setStatus('pending');
     try {
       const res = await transferLot({ lotId: Number(lotId), toActor, notes });
@@ -81,9 +82,10 @@ export default function CooperativePage() {
 
           {/* Success */}
           {status === 'success' && (
-            <div className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+            <div className="anim-pop-in bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
               <div className="bg-blue-600 text-white px-6 py-5 flex items-center gap-3">
-                <div className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center shrink-0
+                                anim-pop-in" style={{ animationDelay: '150ms' }}>
                   <FontAwesomeIcon icon={faCircleCheck} className="text-white text-lg" />
                 </div>
                 <div>
@@ -92,33 +94,25 @@ export default function CooperativePage() {
                 </div>
               </div>
               <div className="px-6 py-5 space-y-3">
-                <div>
-                  <p className="text-xs text-stone-400 mb-0.5">Lot transféré</p>
-                  <p className="font-mono font-medium text-stone-800">#{lotId}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-stone-400 mb-0.5">Nouveau propriétaire</p>
-                  <p className="font-mono text-sm text-stone-800 break-all">{toActor}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-stone-400 mb-0.5">Hash de transaction</p>
-                  <p className="font-mono text-xs text-stone-600 break-all">{txHash}</p>
-                </div>
+                <InfoRow label="Lot transféré" value={`#${lotId}`} mono />
+                <InfoRow label="Nouveau propriétaire" value={toActor} mono />
+                <InfoRow label="Hash de transaction" value={txHash} mono small />
               </div>
               <div className="px-6 pb-5">
                 <button onClick={reset}
                   className="w-full rounded-lg border border-stone-200 py-2.5 text-sm text-stone-600
-                             hover:bg-stone-50 transition-colors font-medium">
+                             hover:bg-stone-50 active:scale-[0.98] transition-all font-medium">
                   Nouveau transfert
                 </button>
               </div>
             </div>
           )}
 
-          {/* Lots disponibles */}
+          {/* Lots disponibles + formulaire */}
           {status !== 'success' && (
             <>
-              <div className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+              {/* Lots */}
+              <div className="anim-scale-in bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
                 <div className="px-6 py-4 border-b border-stone-100 flex items-center justify-between">
                   <div>
                     <h2 className="font-semibold text-stone-800">Lots disponibles</h2>
@@ -127,7 +121,8 @@ export default function CooperativePage() {
                   <button onClick={loadLots} disabled={status === 'loading'}
                     className="inline-flex items-center gap-1.5 text-xs bg-blue-50 text-blue-700
                                border border-blue-200 rounded-lg px-3 py-1.5
-                               hover:bg-blue-100 transition-colors disabled:opacity-50">
+                               hover:bg-blue-100 active:scale-95
+                               transition-all disabled:opacity-50">
                     {status === 'loading' ? (
                       <>
                         <FontAwesomeIcon icon={faSpinner} spin className="text-blue-600" />
@@ -145,26 +140,32 @@ export default function CooperativePage() {
                 {lotsLoaded && (
                   <div className="divide-y divide-stone-100">
                     {lots.length === 0 ? (
-                      <p className="px-6 py-4 text-sm text-stone-400 italic">
+                      <p className="px-6 py-5 text-sm text-stone-400 italic">
                         Aucun lot trouvé. Créez-en un depuis le dashboard Agriculteur.
                       </p>
-                    ) : lots.map((lot) => (
+                    ) : lots.map((lot, i) => (
                       <button key={lot.id} type="button"
                         onClick={() => setLotId(lot.id)}
-                        className={`w-full text-left px-6 py-3 hover:bg-blue-50 transition-colors
+                        style={{ animationDelay: `${i * 50}ms` }}
+                        className={`anim-slide-right w-full text-left px-6 py-3 transition-colors
+                                    hover:bg-blue-50 flex items-center justify-between gap-3
                                     ${lotId === lot.id ? 'bg-blue-50 border-l-4 border-blue-500' : ''}`}>
-                        <div className="flex items-center justify-between">
-                          <div>
+                        <div>
+                          <div className="flex items-center gap-2">
                             <span className="font-mono font-medium text-stone-800 text-sm">Lot #{lot.id}</span>
-                            <span className="ml-2 text-xs bg-amber-100 text-amber-700 rounded px-1.5 py-0.5">
+                            <span className="text-xs bg-amber-100 text-amber-700 rounded px-1.5 py-0.5">
                               {lot.species}
                             </span>
                           </div>
-                          <span className="text-xs text-stone-400">{lot.weightKg} kg</span>
+                          <p className="text-xs text-stone-400 mt-0.5">
+                            Propriétaire : {shortAddr(lot.currentOwner)}
+                          </p>
                         </div>
-                        <p className="text-xs text-stone-400 mt-0.5">
-                          Propriétaire : {shortAddr(lot.currentOwner)}
-                        </p>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="text-xs text-stone-400">{lot.weightKg} kg</span>
+                          <FontAwesomeIcon icon={faChevronRight}
+                            className={`text-xs transition-colors ${lotId === lot.id ? 'text-blue-500' : 'text-stone-300'}`} />
+                        </div>
                       </button>
                     ))}
                   </div>
@@ -173,13 +174,13 @@ export default function CooperativePage() {
 
               {/* Transfer form */}
               <form onSubmit={handleSubmit}
-                className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+                className="anim-scale-in bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden"
+                style={{ animationDelay: '60ms' }}>
                 <div className="px-6 py-5 border-b border-stone-100">
                   <h2 className="font-semibold text-stone-800">Transférer un lot</h2>
                 </div>
 
                 <div className="px-6 py-5 space-y-5">
-                  {/* Lot ID */}
                   <div>
                     <label className="label">ID du lot</label>
                     <input type="number" min="0" required placeholder="ex. 0"
@@ -192,7 +193,6 @@ export default function CooperativePage() {
                     )}
                   </div>
 
-                  {/* Destinataire */}
                   <div>
                     <label className="label">Adresse du destinataire</label>
                     <select
@@ -212,12 +212,12 @@ export default function CooperativePage() {
                       className="input font-mono text-sm" />
                   </div>
 
-                  {/* Notes */}
                   <div>
                     <label className="label">
                       Notes <span className="text-stone-400 font-normal">(optionnel)</span>
                     </label>
-                    <textarea rows={2} placeholder="ex. Livraison Yamoussoukro — conditionnement terminé"
+                    <textarea rows={2}
+                      placeholder="ex. Livraison Yamoussoukro — conditionnement terminé"
                       value={notes} onChange={e => setNotes(e.target.value)}
                       className="input resize-none" />
                   </div>
@@ -228,7 +228,8 @@ export default function CooperativePage() {
                 <div className="px-6 pb-6">
                   <button type="submit" disabled={status === 'pending'}
                     className="w-full rounded-lg bg-blue-600 py-3 text-white font-medium
-                               hover:bg-blue-700 transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
+                               hover:bg-blue-700 active:scale-[0.98]
+                               transition-all disabled:opacity-60 flex items-center justify-center gap-2">
                     {status === 'pending' ? (
                       <>
                         <FontAwesomeIcon icon={faSpinner} spin />
@@ -251,6 +252,8 @@ export default function CooperativePage() {
   );
 }
 
+/* ── Sub-components ─────────────────────────────────────────────────────────── */
+
 function Header() {
   return (
     <header className="bg-blue-700 text-white px-6 py-4 shadow-md">
@@ -262,7 +265,8 @@ function Header() {
           <span className="font-semibold">Dashboard Coopérative</span>
         </div>
         <Link href="/"
-          className="flex items-center gap-1.5 text-xs opacity-75 hover:opacity-100 transition-opacity">
+          className="flex items-center gap-1.5 text-xs opacity-75 hover:opacity-100
+                     hover:-translate-x-0.5 transition-all duration-200">
           <FontAwesomeIcon icon={faArrowLeft} className="text-xs" />
           Accueil
         </Link>
@@ -271,9 +275,24 @@ function Header() {
   );
 }
 
+function InfoRow({ label, value, mono, small }: {
+  label: string; value: string; mono?: boolean; small?: boolean;
+}) {
+  return (
+    <div>
+      <p className="text-xs text-stone-400 mb-0.5">{label}</p>
+      <p className={`font-medium text-stone-800 break-all
+                     ${mono ? 'font-mono' : ''} ${small ? 'text-xs text-stone-600' : 'text-sm'}`}>
+        {value}
+      </p>
+    </div>
+  );
+}
+
 function ErrorBox({ msg }: { msg: string }) {
   return (
-    <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-red-700 text-sm flex items-start gap-2.5">
+    <div className="anim-slide-down rounded-lg bg-red-50 border border-red-200 px-4 py-3
+                    text-red-700 text-sm flex items-start gap-2.5">
       <FontAwesomeIcon icon={faTriangleExclamation} className="text-red-500 mt-0.5 shrink-0" />
       <span>{msg}</span>
     </div>

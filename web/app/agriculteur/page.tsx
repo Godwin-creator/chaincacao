@@ -44,7 +44,7 @@ export default function AgriculteurPage() {
         setStatus('idle');
       },
       () => {
-        setError('Impossible d\'obtenir la position GPS. Saisissez-la manuellement.');
+        setError("Impossible d'obtenir la position GPS. Saisissez-la manuellement.");
         setStatus('idle');
       },
       { timeout: 10_000 }
@@ -98,9 +98,10 @@ export default function AgriculteurPage() {
 
           {/* Success */}
           {status === 'success' && result && (
-            <div className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden mb-6">
+            <div className="anim-pop-in bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden mb-6">
               <div className="bg-green-600 text-white px-6 py-5 flex items-center gap-3">
-                <div className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center shrink-0 anim-pop-in"
+                     style={{ animationDelay: '150ms' }}>
                   <FontAwesomeIcon icon={faCircleCheck} className="text-white text-lg" />
                 </div>
                 <div>
@@ -111,8 +112,8 @@ export default function AgriculteurPage() {
               <div className="px-6 py-5 space-y-4">
                 <Row label="ID du lot" value={`#${result.lotId}`} mono />
                 <Row label="Transaction" value={result.txHash} mono truncate />
-                <div className="flex flex-col items-center gap-3 pt-2 border-t border-stone-100">
-                  <div className="flex items-center gap-2 text-sm text-stone-500 mt-2">
+                <div className="flex flex-col items-center gap-3 pt-3 border-t border-stone-100">
+                  <div className="flex items-center gap-2 text-sm text-stone-500 mt-1">
                     <FontAwesomeIcon icon={faQrcode} className="text-stone-400" />
                     <span>QR Code de traçabilité</span>
                   </div>
@@ -120,12 +121,14 @@ export default function AgriculteurPage() {
                   <img
                     src={result.qrCode}
                     alt={`QR code lot #${result.lotId}`}
-                    className="w-44 h-44 rounded-xl border border-stone-200"
+                    className="w-44 h-44 rounded-xl border border-stone-200 shadow-sm anim-scale-in"
+                    style={{ animationDelay: '200ms' }}
                   />
                   <a
                     href={result.qrCode}
                     download={`lot-${result.lotId}.png`}
-                    className="inline-flex items-center gap-1.5 text-xs text-green-700 hover:text-green-900 font-medium"
+                    className="inline-flex items-center gap-1.5 text-xs text-green-700
+                               hover:text-green-900 font-medium transition-colors"
                   >
                     <FontAwesomeIcon icon={faDownload} className="text-xs" />
                     Télécharger le QR code
@@ -135,7 +138,7 @@ export default function AgriculteurPage() {
               <div className="px-6 pb-5">
                 <button onClick={reset}
                   className="w-full rounded-lg border border-stone-200 py-2.5 text-sm text-stone-600
-                             hover:bg-stone-50 transition-colors font-medium">
+                             hover:bg-stone-50 active:scale-[0.98] transition-all font-medium">
                   Créer un autre lot
                 </button>
               </div>
@@ -145,7 +148,7 @@ export default function AgriculteurPage() {
           {/* Form */}
           {status !== 'success' && (
             <form onSubmit={handleSubmit}
-              className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+              className="anim-scale-in bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
               <div className="px-6 py-5 border-b border-stone-100">
                 <h2 className="font-semibold text-stone-800">Nouveau lot de cacao</h2>
                 <p className="text-stone-400 text-sm mt-0.5">
@@ -175,13 +178,17 @@ export default function AgriculteurPage() {
                 <div>
                   <label className="label">Coordonnées GPS</label>
                   <button type="button" onClick={getGps} disabled={status === 'locating'}
-                    className="mb-2 w-full flex items-center justify-center gap-2 rounded-lg
+                    className={`relative mb-2 w-full flex items-center justify-center gap-2 rounded-lg
                                border-2 border-dashed border-green-400 py-2.5 text-sm text-green-700
-                               hover:bg-green-50 transition-colors disabled:opacity-50">
+                               hover:bg-green-50 transition-colors disabled:opacity-60
+                               ${status === 'locating' ? 'anim-shimmer' : ''}`}>
+                    {status === 'locating' && (
+                      <span className="absolute inset-0 rounded-lg bg-green-300/20 animate-ping" />
+                    )}
                     {status === 'locating' ? (
                       <>
                         <FontAwesomeIcon icon={faSpinner} spin className="text-green-600" />
-                        Localisation…
+                        Localisation en cours…
                       </>
                     ) : (
                       <>
@@ -215,7 +222,8 @@ export default function AgriculteurPage() {
               <div className="px-6 pb-6">
                 <button type="submit" disabled={status === 'pending'}
                   className="w-full rounded-lg bg-green-600 py-3 text-white font-medium
-                             hover:bg-green-700 transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
+                             hover:bg-green-700 active:scale-[0.98]
+                             transition-all disabled:opacity-60 flex items-center justify-center gap-2">
                   {status === 'pending' ? (
                     <>
                       <FontAwesomeIcon icon={faSpinner} spin />
@@ -237,7 +245,7 @@ export default function AgriculteurPage() {
   );
 }
 
-/* ── Shared sub-components ─────────────────────────────────────────────────── */
+/* ── Sub-components ─────────────────────────────────────────────────────────── */
 
 function Header() {
   return (
@@ -250,7 +258,8 @@ function Header() {
           <span className="font-semibold">Dashboard Agriculteur</span>
         </div>
         <Link href="/"
-          className="flex items-center gap-1.5 text-xs opacity-75 hover:opacity-100 transition-opacity">
+          className="flex items-center gap-1.5 text-xs opacity-75 hover:opacity-100
+                     hover:-translate-x-0.5 transition-all duration-200">
           <FontAwesomeIcon icon={faArrowLeft} className="text-xs" />
           Accueil
         </Link>
@@ -274,7 +283,8 @@ function Row({ label, value, mono, truncate }: {
   return (
     <div>
       <p className="text-xs text-stone-400 mb-0.5">{label}</p>
-      <p className={`text-stone-800 font-medium text-sm break-all ${mono ? 'font-mono' : ''} ${truncate ? 'truncate' : ''}`}>
+      <p className={`text-stone-800 font-medium text-sm break-all
+                     ${mono ? 'font-mono' : ''} ${truncate ? 'truncate' : ''}`}>
         {value}
       </p>
     </div>
@@ -283,7 +293,8 @@ function Row({ label, value, mono, truncate }: {
 
 function ErrorBox({ msg }: { msg: string }) {
   return (
-    <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-red-700 text-sm flex items-start gap-2.5">
+    <div className="anim-slide-down rounded-lg bg-red-50 border border-red-200 px-4 py-3
+                    text-red-700 text-sm flex items-start gap-2.5">
       <FontAwesomeIcon icon={faTriangleExclamation} className="text-red-500 mt-0.5 shrink-0" />
       <span>{msg}</span>
     </div>

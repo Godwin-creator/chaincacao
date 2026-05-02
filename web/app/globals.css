@@ -25,14 +25,64 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* Shared form utilities */
+/* ── Shared form utilities ──────────────────────────────────────────────────── */
+
 .input {
   @apply w-full rounded-lg border border-stone-300 px-3 py-2.5 text-sm text-stone-800
          bg-white placeholder-stone-400
          focus:border-amber-500 focus:ring-2 focus:ring-amber-200 focus:outline-none
-         transition-colors;
+         transition-all duration-200;
 }
 
 .label {
   @apply block text-sm font-medium text-stone-700 mb-1.5;
 }
+
+/* ── Keyframes ──────────────────────────────────────────────────────────────── */
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes popIn {
+  0%   { opacity: 0; transform: scale(0.7); }
+  70%  { transform: scale(1.05); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideRight {
+  from { opacity: 0; transform: translateX(-14px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes shimmerPulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.55; }
+}
+
+/* ── Animation classes ──────────────────────────────────────────────────────── */
+
+.anim-fade-up    { animation: fadeInUp   0.45s ease-out both; }
+.anim-scale-in   { animation: scaleIn    0.35s ease-out both; }
+.anim-pop-in     { animation: popIn      0.5s  cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.anim-slide-down { animation: slideDown  0.32s ease-out both; }
+.anim-slide-right{ animation: slideRight 0.32s ease-out both; }
+.anim-shimmer    { animation: shimmerPulse 1.4s ease-in-out infinite; }
+
+/* ── Scrollbar ──────────────────────────────────────────────────────────────── */
+
+::-webkit-scrollbar       { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d6d3d1; border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: #a8a29e; }
