@@ -316,8 +316,8 @@ app.get('/health', (_req, res) => {
 
 // ─── Start ───────────────────────────────────────────────────────────────────
 
-app.listen(PORT, () => {
-  console.log(`ChainCacao API  →  http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`ChainCacao API  →  http://0.0.0.0:${PORT}`);
   console.log(`Contrat         →  ${CONTRACT_ADDRESS}`);
   console.log(`Relayer wallet  →  ${wallet.address}`);
   console.log(`Réseau RPC      →  ${RPC_URL}`);
