@@ -2,6 +2,16 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  faHandshake,
+  faRightLeft,
+  faCircleCheck,
+  faTriangleExclamation,
+  faArrowLeft,
+  faRotate,
+  faSpinner,
+} from '@fortawesome/free-solid-svg-icons';
 import { getLots, transferLot, shortAddr, type Lot } from '@/app/lib/api';
 
 type Status = 'idle' | 'loading' | 'pending' | 'success' | 'error';
@@ -66,14 +76,20 @@ export default function CooperativePage() {
     <div className="flex flex-1 flex-col">
       <Header />
 
-      <main className="flex-1 px-4 py-8">
+      <main className="flex-1 px-4 py-8 bg-stone-50">
         <div className="mx-auto max-w-lg space-y-6">
 
           {/* Success */}
           {status === 'success' && (
-            <div className="bg-white rounded-2xl shadow-sm border border-blue-200 overflow-hidden">
-              <div className="bg-blue-600 text-white px-6 py-4">
-                <p className="font-semibold text-lg">✅ Transfert enregistré !</p>
+            <div className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+              <div className="bg-blue-600 text-white px-6 py-5 flex items-center gap-3">
+                <div className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center shrink-0">
+                  <FontAwesomeIcon icon={faCircleCheck} className="text-white text-lg" />
+                </div>
+                <div>
+                  <p className="font-semibold text-lg leading-none">Transfert enregistré !</p>
+                  <p className="text-blue-100 text-xs mt-1">Transaction confirmée sur la blockchain</p>
+                </div>
               </div>
               <div className="px-6 py-5 space-y-3">
                 <div>
@@ -91,7 +107,8 @@ export default function CooperativePage() {
               </div>
               <div className="px-6 pb-5">
                 <button onClick={reset}
-                  className="w-full rounded-lg border border-stone-300 py-2 text-sm text-stone-600 hover:bg-stone-50 transition-colors">
+                  className="w-full rounded-lg border border-stone-200 py-2.5 text-sm text-stone-600
+                             hover:bg-stone-50 transition-colors font-medium">
                   Nouveau transfert
                 </button>
               </div>
@@ -108,9 +125,20 @@ export default function CooperativePage() {
                     <p className="text-stone-400 text-xs mt-0.5">Créés via l'API locale</p>
                   </div>
                   <button onClick={loadLots} disabled={status === 'loading'}
-                    className="text-xs bg-blue-50 text-blue-700 border border-blue-200 rounded-lg px-3 py-1.5
-                               hover:bg-blue-100 transition-colors disabled:opacity-50 flex items-center gap-1.5">
-                    {status === 'loading' ? <><Spinner className="text-blue-600" /> Chargement…</> : '↻ Charger'}
+                    className="inline-flex items-center gap-1.5 text-xs bg-blue-50 text-blue-700
+                               border border-blue-200 rounded-lg px-3 py-1.5
+                               hover:bg-blue-100 transition-colors disabled:opacity-50">
+                    {status === 'loading' ? (
+                      <>
+                        <FontAwesomeIcon icon={faSpinner} spin className="text-blue-600" />
+                        Chargement…
+                      </>
+                    ) : (
+                      <>
+                        <FontAwesomeIcon icon={faRotate} className="text-blue-500" />
+                        Charger
+                      </>
+                    )}
                   </button>
                 </div>
 
@@ -186,7 +214,9 @@ export default function CooperativePage() {
 
                   {/* Notes */}
                   <div>
-                    <label className="label">Notes <span className="text-stone-400 font-normal">(optionnel)</span></label>
+                    <label className="label">
+                      Notes <span className="text-stone-400 font-normal">(optionnel)</span>
+                    </label>
                     <textarea rows={2} placeholder="ex. Livraison Yamoussoukro — conditionnement terminé"
                       value={notes} onChange={e => setNotes(e.target.value)}
                       className="input resize-none" />
@@ -199,9 +229,17 @@ export default function CooperativePage() {
                   <button type="submit" disabled={status === 'pending'}
                     className="w-full rounded-lg bg-blue-600 py-3 text-white font-medium
                                hover:bg-blue-700 transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
-                    {status === 'pending'
-                      ? <><Spinner /> Transfert en cours…</>
-                      : '🤝 Enregistrer le transfert'}
+                    {status === 'pending' ? (
+                      <>
+                        <FontAwesomeIcon icon={faSpinner} spin />
+                        Transfert en cours…
+                      </>
+                    ) : (
+                      <>
+                        <FontAwesomeIcon icon={faRightLeft} />
+                        Enregistrer le transfert
+                      </>
+                    )}
                   </button>
                 </div>
               </form>
@@ -217,12 +255,16 @@ function Header() {
   return (
     <header className="bg-blue-700 text-white px-6 py-4 shadow-md">
       <div className="mx-auto max-w-lg flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="text-2xl">🤝</span>
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shrink-0">
+            <FontAwesomeIcon icon={faHandshake} className="text-blue-100 text-sm" />
+          </div>
           <span className="font-semibold">Dashboard Coopérative</span>
         </div>
-        <Link href="/" className="text-xs opacity-75 hover:opacity-100 transition-opacity">
-          ← Accueil
+        <Link href="/"
+          className="flex items-center gap-1.5 text-xs opacity-75 hover:opacity-100 transition-opacity">
+          <FontAwesomeIcon icon={faArrowLeft} className="text-xs" />
+          Accueil
         </Link>
       </div>
     </header>
@@ -231,18 +273,9 @@ function Header() {
 
 function ErrorBox({ msg }: { msg: string }) {
   return (
-    <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-red-700 text-sm">
-      ⚠️ {msg}
+    <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-red-700 text-sm flex items-start gap-2.5">
+      <FontAwesomeIcon icon={faTriangleExclamation} className="text-red-500 mt-0.5 shrink-0" />
+      <span>{msg}</span>
     </div>
-  );
-}
-
-function Spinner({ className = 'text-white' }: { className?: string }) {
-  return (
-    <svg className={`animate-spin h-4 w-4 ${className}`} viewBox="0 0 24 24" fill="none">
-      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-      <path className="opacity-75" fill="currentColor"
-        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-    </svg>
   );
 }

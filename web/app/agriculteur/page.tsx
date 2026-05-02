@@ -2,6 +2,18 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  faSeedling,
+  faLeaf,
+  faLocationDot,
+  faCircleCheck,
+  faTriangleExclamation,
+  faArrowLeft,
+  faSpinner,
+  faQrcode,
+  faDownload,
+} from '@fortawesome/free-solid-svg-icons';
 import { createLot, type CreateLotResult } from '@/app/lib/api';
 
 const SPECIES = ['Forastero', 'Criollo', 'Trinitario', 'Nacional'];
@@ -79,40 +91,51 @@ export default function AgriculteurPage() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <Header color="bg-green-700" emoji="🌱" title="Dashboard Agriculteur" />
+      <Header />
 
-      <main className="flex-1 px-4 py-8">
+      <main className="flex-1 px-4 py-8 bg-stone-50">
         <div className="mx-auto max-w-lg">
 
           {/* Success */}
           {status === 'success' && result && (
-            <div className="bg-white rounded-2xl shadow-sm border border-green-200 overflow-hidden mb-6">
-              <div className="bg-green-600 text-white px-6 py-4">
-                <p className="font-semibold text-lg">✅ Lot créé avec succès !</p>
+            <div className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden mb-6">
+              <div className="bg-green-600 text-white px-6 py-5 flex items-center gap-3">
+                <div className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center shrink-0">
+                  <FontAwesomeIcon icon={faCircleCheck} className="text-white text-lg" />
+                </div>
+                <div>
+                  <p className="font-semibold text-lg leading-none">Lot créé avec succès !</p>
+                  <p className="text-green-100 text-xs mt-1">Enregistré sur la blockchain</p>
+                </div>
               </div>
               <div className="px-6 py-5 space-y-4">
                 <Row label="ID du lot" value={`#${result.lotId}`} mono />
                 <Row label="Transaction" value={result.txHash} mono truncate />
-                <div className="flex flex-col items-center gap-3 pt-2">
-                  <p className="text-sm text-stone-500">QR Code de traçabilité</p>
+                <div className="flex flex-col items-center gap-3 pt-2 border-t border-stone-100">
+                  <div className="flex items-center gap-2 text-sm text-stone-500 mt-2">
+                    <FontAwesomeIcon icon={faQrcode} className="text-stone-400" />
+                    <span>QR Code de traçabilité</span>
+                  </div>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={result.qrCode}
                     alt={`QR code lot #${result.lotId}`}
-                    className="w-44 h-44 rounded-lg border border-stone-200"
+                    className="w-44 h-44 rounded-xl border border-stone-200"
                   />
                   <a
                     href={result.qrCode}
                     download={`lot-${result.lotId}.png`}
-                    className="text-xs text-green-700 underline hover:text-green-900"
+                    className="inline-flex items-center gap-1.5 text-xs text-green-700 hover:text-green-900 font-medium"
                   >
+                    <FontAwesomeIcon icon={faDownload} className="text-xs" />
                     Télécharger le QR code
                   </a>
                 </div>
               </div>
               <div className="px-6 pb-5">
                 <button onClick={reset}
-                  className="w-full rounded-lg border border-stone-300 py-2 text-sm text-stone-600 hover:bg-stone-50 transition-colors">
+                  className="w-full rounded-lg border border-stone-200 py-2.5 text-sm text-stone-600
+                             hover:bg-stone-50 transition-colors font-medium">
                   Créer un autre lot
                 </button>
               </div>
@@ -155,9 +178,17 @@ export default function AgriculteurPage() {
                     className="mb-2 w-full flex items-center justify-center gap-2 rounded-lg
                                border-2 border-dashed border-green-400 py-2.5 text-sm text-green-700
                                hover:bg-green-50 transition-colors disabled:opacity-50">
-                    {status === 'locating'
-                      ? <><Spinner className="text-green-600" /> Localisation…</>
-                      : '📍 Obtenir la position automatiquement'}
+                    {status === 'locating' ? (
+                      <>
+                        <FontAwesomeIcon icon={faSpinner} spin className="text-green-600" />
+                        Localisation…
+                      </>
+                    ) : (
+                      <>
+                        <FontAwesomeIcon icon={faLocationDot} className="text-green-600" />
+                        Obtenir la position automatiquement
+                      </>
+                    )}
                   </button>
                   <div className="grid grid-cols-2 gap-3">
                     <input type="text" placeholder="Latitude" required
@@ -185,9 +216,17 @@ export default function AgriculteurPage() {
                 <button type="submit" disabled={status === 'pending'}
                   className="w-full rounded-lg bg-green-600 py-3 text-white font-medium
                              hover:bg-green-700 transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
-                  {status === 'pending'
-                    ? <><Spinner /> Enregistrement en cours…</>
-                    : '🌿 Créer le lot sur la blockchain'}
+                  {status === 'pending' ? (
+                    <>
+                      <FontAwesomeIcon icon={faSpinner} spin />
+                      Enregistrement en cours…
+                    </>
+                  ) : (
+                    <>
+                      <FontAwesomeIcon icon={faLeaf} />
+                      Créer le lot sur la blockchain
+                    </>
+                  )}
                 </button>
               </div>
             </form>
@@ -200,16 +239,20 @@ export default function AgriculteurPage() {
 
 /* ── Shared sub-components ─────────────────────────────────────────────────── */
 
-function Header({ color, emoji, title }: { color: string; emoji: string; title: string }) {
+function Header() {
   return (
-    <header className={`${color} text-white px-6 py-4 shadow-md`}>
+    <header className="bg-green-700 text-white px-6 py-4 shadow-md">
       <div className="mx-auto max-w-lg flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="text-2xl">{emoji}</span>
-          <span className="font-semibold">{title}</span>
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center shrink-0">
+            <FontAwesomeIcon icon={faSeedling} className="text-green-100 text-sm" />
+          </div>
+          <span className="font-semibold">Dashboard Agriculteur</span>
         </div>
-        <Link href="/" className="text-xs opacity-75 hover:opacity-100 transition-opacity">
-          ← Accueil
+        <Link href="/"
+          className="flex items-center gap-1.5 text-xs opacity-75 hover:opacity-100 transition-opacity">
+          <FontAwesomeIcon icon={faArrowLeft} className="text-xs" />
+          Accueil
         </Link>
       </div>
     </header>
@@ -240,18 +283,9 @@ function Row({ label, value, mono, truncate }: {
 
 function ErrorBox({ msg }: { msg: string }) {
   return (
-    <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-red-700 text-sm">
-      ⚠️ {msg}
+    <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-red-700 text-sm flex items-start gap-2.5">
+      <FontAwesomeIcon icon={faTriangleExclamation} className="text-red-500 mt-0.5 shrink-0" />
+      <span>{msg}</span>
     </div>
-  );
-}
-
-function Spinner({ className = 'text-white' }: { className?: string }) {
-  return (
-    <svg className={`animate-spin h-4 w-4 ${className}`} viewBox="0 0 24 24" fill="none">
-      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-      <path className="opacity-75" fill="currentColor"
-        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-    </svg>
   );
 }

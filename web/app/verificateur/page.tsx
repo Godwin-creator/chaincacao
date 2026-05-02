@@ -2,6 +2,17 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  faMagnifyingGlass,
+  faArrowLeft,
+  faArrowRight,
+  faTriangleExclamation,
+  faMapLocationDot,
+  faSeedling,
+  faBoxOpen,
+  faSpinner,
+} from '@fortawesome/free-solid-svg-icons';
 import { getLot, shortAddr, formatTs, type Lot, type Transfer } from '@/app/lib/api';
 
 type Status = 'idle' | 'pending' | 'success' | 'error';
@@ -36,7 +47,7 @@ export default function VerificateurPage() {
     <div className="flex flex-1 flex-col">
       <Header />
 
-      <main className="flex-1 px-4 py-8">
+      <main className="flex-1 px-4 py-8 bg-stone-50">
         <div className="mx-auto max-w-2xl space-y-6">
 
           {/* Search bar */}
@@ -52,13 +63,24 @@ export default function VerificateurPage() {
               />
               <button type="submit" disabled={status === 'pending' || !search}
                 className="rounded-lg bg-purple-600 text-white px-5 py-2.5 font-medium text-sm
-                           hover:bg-purple-700 transition-colors disabled:opacity-60 flex items-center gap-2">
-                {status === 'pending' ? <><Spinner /> Recherche…</> : '🔍 Vérifier'}
+                           hover:bg-purple-700 transition-colors disabled:opacity-60 flex items-center gap-2 shrink-0">
+                {status === 'pending' ? (
+                  <>
+                    <FontAwesomeIcon icon={faSpinner} spin />
+                    Recherche…
+                  </>
+                ) : (
+                  <>
+                    <FontAwesomeIcon icon={faMagnifyingGlass} />
+                    Vérifier
+                  </>
+                )}
               </button>
             </div>
             {error && (
-              <div className="mt-3 rounded-lg bg-red-50 border border-red-200 px-4 py-2.5 text-red-700 text-sm">
-                ⚠️ {error}
+              <div className="mt-3 rounded-lg bg-red-50 border border-red-200 px-4 py-2.5 text-red-700 text-sm flex items-center gap-2">
+                <FontAwesomeIcon icon={faTriangleExclamation} className="text-red-500 shrink-0" />
+                <span>{error}</span>
               </div>
             )}
           </form>
@@ -95,9 +117,10 @@ export default function VerificateurPage() {
                     href={`https://www.openstreetmap.org/?mlat=${lot.gpsLat}&mlon=${lot.gpsLng}&zoom=12`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-xs text-purple-700 hover:text-purple-900 underline"
+                    className="inline-flex items-center gap-1.5 text-xs text-purple-700 hover:text-purple-900 font-medium"
                   >
-                    📍 Voir sur OpenStreetMap
+                    <FontAwesomeIcon icon={faMapLocationDot} />
+                    Voir sur OpenStreetMap
                   </a>
                 </div>
               </div>
@@ -114,8 +137,10 @@ export default function VerificateurPage() {
                 </div>
 
                 {history.length === 0 ? (
-                  <div className="px-6 py-8 text-center">
-                    <span className="text-4xl block mb-2">🌱</span>
+                  <div className="px-6 py-10 text-center">
+                    <div className="w-12 h-12 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                      <FontAwesomeIcon icon={faSeedling} className="text-green-400 text-lg" />
+                    </div>
                     <p className="text-stone-400 text-sm">Ce lot n&apos;a pas encore été transféré.</p>
                   </div>
                 ) : (
@@ -157,12 +182,16 @@ function Header() {
   return (
     <header className="bg-purple-700 text-white px-6 py-4 shadow-md">
       <div className="mx-auto max-w-2xl flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="text-2xl">🔍</span>
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center shrink-0">
+            <FontAwesomeIcon icon={faMagnifyingGlass} className="text-purple-100 text-sm" />
+          </div>
           <span className="font-semibold">Vérificateur public</span>
         </div>
-        <Link href="/" className="text-xs opacity-75 hover:opacity-100 transition-opacity">
-          ← Accueil
+        <Link href="/"
+          className="flex items-center gap-1.5 text-xs opacity-75 hover:opacity-100 transition-opacity">
+          <FontAwesomeIcon icon={faArrowLeft} className="text-xs" />
+          Accueil
         </Link>
       </div>
     </header>
@@ -198,8 +227,15 @@ function TimelineItem({
 
       {/* Dot */}
       <div className={`relative mt-0.5 h-6 w-6 shrink-0 rounded-full border-2 flex items-center justify-center
-                       ${isFirst ? 'border-green-500 bg-green-50' : isLast ? 'border-purple-500 bg-purple-50' : 'border-blue-400 bg-blue-50'}`}>
-        <span className="text-xs">{isFirst ? '🌱' : isLast ? '📦' : '→'}</span>
+                       ${isFirst
+                         ? 'border-green-500 bg-green-50'
+                         : isLast
+                           ? 'border-purple-500 bg-purple-50'
+                           : 'border-blue-400 bg-blue-50'}`}>
+        <FontAwesomeIcon
+          icon={isFirst ? faSeedling : isLast ? faBoxOpen : faArrowRight}
+          className={`text-[9px] ${isFirst ? 'text-green-600' : isLast ? 'text-purple-600' : 'text-blue-500'}`}
+        />
       </div>
 
       <div className="flex-1 min-w-0">
@@ -210,7 +246,7 @@ function TimelineItem({
         {from && (
           <p className="text-xs text-stone-500 mt-0.5">
             <span className="font-mono">{shortAddr(from)}</span>
-            <span className="mx-1.5 text-stone-300">→</span>
+            <FontAwesomeIcon icon={faArrowRight} className="mx-1.5 text-stone-300 text-[10px]" />
             <span className="font-mono">{shortAddr(to)}</span>
           </p>
         )}
@@ -222,15 +258,5 @@ function TimelineItem({
         )}
       </div>
     </li>
-  );
-}
-
-function Spinner({ className = 'text-white' }: { className?: string }) {
-  return (
-    <svg className={`animate-spin h-4 w-4 ${className}`} viewBox="0 0 24 24" fill="none">
-      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-      <path className="opacity-75" fill="currentColor"
-        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-    </svg>
   );
 }
